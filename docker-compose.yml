@@ -1,9 +1,67 @@
----
-version: '3.9'
+
 services:
-    tradingview-webhook-bot:
-        build: .
-        container_name: tradingview-webhook-bot
-        ports:
-            - '80:80'
-        restart: unless-stopped
+  webapp:
+    build: .
+    command: python main.py
+    ports:
+      - "24000:24000/tcp"
+    volumes:
+      - .:/code
+    environment:
+      - FLASK_ENV=development
+    image: tradingview-webhook-bot:latest
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://webapp:24000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  caddy-tvwh-r3int-xyz:
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
+    ports:
+      - "8080:80/tcp"
+      - "8443:443/tcp"
+      - "2019:2019/tcp"
+      - "8080:80/udp"
+      - "8443:443/udp"
+      - "2019:2019/udp"
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      webapp:
+        condition: service_healthy
+    environment:
+# was using porkbun and now using cloudflare
+#      - PORKBUN_API_KEY=/run/secrets/PORKBUN_API_KEY
+#      - PORKBUN_API_SECRET_KEY=/run/secrets/PORKBUN_API_SECRET_KEY
+      - CF_API_TOKEN=/run/secrets/CF_API_TOKEN
+      - CF_ZONE_TOKEN=/run/secrets/CF_ZONE_TOKEN
+      - ACME_AGREE=true
+      - CADDY_EMAIL_ADDRESS=/run/secrets/CADDY_EMAIL_ADDRESS
+    secrets:
+# was previously using porkbun and now moved onto cloudflare
+#      - PORKBUN_API_KEY
+#      - PORKBUN_API_SECRET_KEY
+      - CADDY_EMAIL_ADDRESS
+      - CF_API_TOKEN
+      - CF_ZONE_TOKEN
+ #   env_file:
+ #     - path: ./.default.env
+ #       required: true # default
+
+secrets:
+# previously used porkbun and now cloudflare
+#  PORKBUN_API_KEY:
+#    file: ./.secrets/PORKBUN_API_KEY
+#  PORKBUN_API_SECRET_KEY:
+#    file: ./.secrets/PORKBUN_API_SECRET_KEY
+  CADDY_EMAIL_ADDRESS:
+    file: ./.secrets/CADDY_EMAIL_ADDRESS
+  CF_API_TOKEN:
+    file: ./.secrets/CF_API_TOKEN
+  CF_ZONE_TOKEN:
+    file: ./.secrets/CF_ZONE_TOKEN

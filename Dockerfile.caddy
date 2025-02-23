@@ -1,0 +1,13 @@
+FROM caddy:builder AS builder
+
+RUN xcaddy build \
+    --with github.com/caddy-dns/porkbun \
+    --with github.com/mholt/caddy-dynamicdns \
+    --with github.com/caddy-dns/cloudflare
+
+RUN apk add nss-tools
+
+FROM caddy:latest
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY Caddyfile /etc/caddy/Caddyfile

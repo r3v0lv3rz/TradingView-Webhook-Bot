@@ -4,14 +4,14 @@
 # File Name             : handler.py              #
 # ----------------------------------------------- #
 
-import smtplib
+# import smtplib
 import ssl
-from email.mime.text import MIMEText
+# from email.mime.text import MIMEText
 
-import tweepy
+# import tweepy
 from discord_webhook import DiscordEmbed, DiscordWebhook
-from slack_webhook import Slack
-from telegram import Bot
+# from slack_webhook import Slack
+# from telegram import Bot
 
 import config
 

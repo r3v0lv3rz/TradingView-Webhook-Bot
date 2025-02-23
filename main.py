@@ -19,7 +19,7 @@ def get_timestamp():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    whitelisted_ips = ['52.89.214.238', '34.212.75.30', '54.218.53.128', '52.32.178.7']
+    whitelisted_ips = ['125.214.83.13', '34.212.75.30', '54.218.53.128', '52.32.178.7', '144.172.122.63', '172.225.60.180']
     client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if client_ip not in whitelisted_ips:
         return jsonify({'message': 'Unauthorized'}), 401
@@ -39,8 +39,12 @@ def webhook():
         print("[X]", get_timestamp(), "Error:\n>", e)
         return jsonify({'message': 'Error'}), 400
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "up", "message": "Service is running"}), 200
+
 
 if __name__ == "__main__":
     from waitress import serve
 
-    serve(app, host="0.0.0.0", port=8080)
+    serve(app, host="0.0.0.0", port=24000)
